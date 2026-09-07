@@ -10,11 +10,11 @@ The entire setup operates well within the **AWS Free Tier** ($0/month ongoing co
 
 ```mermaid
 flowchart LR
-    EventBridge["Amazon EventBridge<br/>(Cron Scheduler)"] -->|Invokes with {'source':'all'}| Lambda["AWS Lambda Function<br/>(jobs-tracker-scraper)"]
+    EventBridge["Amazon EventBridge<br/>(Cron Scheduler)"] -->|"Invokes with {'source': 'all'}"| Lambda["AWS Lambda Function<br/>(jobs-tracker-scraper)"]
     Lambda -->|Read Secrets| SSM["SSM Parameter Store<br/>(/jobs/*)"]
-    Lambda -->|Read & Write State| DynamoDB[("Amazon DynamoDB<br/>(jobs_tracker + 30-day TTL)")]
+    Lambda -->|"Read & Write State"| DynamoDB[("Amazon DynamoDB<br/>(jobs_tracker + 30-day TTL)")]
     Lambda -->|Scrape Web| Sources["Job Sources<br/>(jobs.ge, LinkedIn)"]
-    Lambda -->|Filter & Evaluate| Gemini["Google Gemini API<br/>(gemini-3.8-flash)"]
+    Lambda -->|"Filter & Evaluate"| Gemini["Google Gemini API<br/>(gemini-3.8-flash)"]
     Lambda -->|Alert on Match| Telegram["Telegram Bot API<br/>(Channel / Chat)"]
 ```
 
