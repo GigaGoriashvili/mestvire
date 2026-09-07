@@ -1,0 +1,42 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Local Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+
+# SQLite Databases & Local Test DBs
+*.db
+*.sqlite
+*.sqlite3
+
+# AWS Lambda packaging & build artifacts
+package/
+build/
+dist/
+*.egg-info/
+deployment_package.zip
+
+# Testing and coverage caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
