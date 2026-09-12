@@ -6,6 +6,7 @@ import re
 from typing import List, Optional
 
 from src.config import (
+    DATA_CENTER_REGEX,
     KEYWORDS,
     SENIOR_TITLE_KEYWORDS,
     SHORT_ACRONYMS,
@@ -18,6 +19,7 @@ def matches_keywords(title: str) -> bool:
     Check if vacancy title matches any target Data/Analytics keywords (Stage 1).
     Uses regex word boundaries for short acronyms (bi, sql, etl, dbt, dwh)
     to prevent false positives like 'mobile' matching 'bi'.
+    Prevents 'data center' / 'datacenter' facility roles from falsely matching on 'data'.
     """
     if not title:
         return False
@@ -27,10 +29,14 @@ def matches_keywords(title: str) -> bool:
     if SHORT_ACRONYMS_REGEX.search(title):
         return True
 
-    # 2. Broad keyword check for longer terms
+    # Strip data center / datacenter references so pure infrastructure/facility roles
+    # do not match simply because the substring 'data' or 'მონაცემთა' is in 'data center'.
+    title_no_dc = DATA_CENTER_REGEX.sub(" ", title_lower)
+
+    # 2. Broad keyword check for longer terms against the sanitized title
     for kw in KEYWORDS:
         if kw not in SHORT_ACRONYMS:
-            if kw in title_lower:
+            if kw in title_no_dc:
                 return True
 
     return False

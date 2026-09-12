@@ -51,14 +51,12 @@ def main() -> None:
         nargs="?",
         const="jobsge",
         default=None,
-        choices=["jobsge", "linkedin", "all"],
-        help="Test mode: process the first job from the specified source ('jobsge', 'linkedin', or 'all') and send alert to Telegram.",
+        help="Test mode: process the first job from the specified source ('jobsge', 'linkedin', 'companies', 'all', or any company ID like 'epam') and send alert to Telegram.",
     )
     parser.add_argument(
         "--source",
-        choices=["all", "jobsge", "linkedin"],
         default="all",
-        help="Source to monitor: 'all' (default), 'jobsge', or 'linkedin'.",
+        help="Source to monitor: 'all' (default), 'aggregators', 'companies', 'jobsge', 'linkedin', or any company ID.",
     )
     parser.add_argument(
         "--loop",

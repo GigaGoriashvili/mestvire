@@ -156,7 +156,7 @@ $INLINE_POLICY = @"
         "dynamodb:PutItem",
         "dynamodb:DescribeTable"
       ],
-      "Resource": "arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/jobs_tracker"
+      "Resource": "arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/jobs_tracker*"
     },
     {
       "Sid": "SSMParameterAccess",
@@ -260,41 +260,95 @@ if ($LASTEXITCODE -ne 0 -and "$out" -match "ResourceAlreadyExistsException") {
 # 5. EventBridge Schedules & Permissions
 Write-Host "5. Configuring EventBridge Schedules..." -ForegroundColor Yellow
 
-$targetsFile = [System.IO.Path]::GetTempFileName()
-$TARGETS_JSON = @"
+# Clean up legacy / migrated rules if they exist
+$legacyRules = @("jobs-tracker-weekdays", "jobs-tracker-weekends", "jobs-tracker-aggregators-2h", "jobs-tracker-companies-6h")
+foreach ($legacy in $legacyRules) {
+    $existing = & $AWS_CMD events describe-rule --name $legacy --region $REGION 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Migrating away from legacy rule '$legacy'..."
+        & $AWS_CMD events remove-targets --rule $legacy --ids "1" --region $REGION 2>$null
+        & $AWS_CMD events delete-rule --name $legacy --region $REGION 2>$null
+    }
+}
+
+# Define the 4 target schedule rules:
+# 1. Aggregators Weekdays: Every 2h from 10:00 to 22:00 Tbilisi (06:00 - 18:00 UTC)
+# 2. Companies Weekdays: Twice daily at 11:00 and 17:00 Tbilisi (07:00, 13:00 UTC)
+# 3. Aggregators Weekends: Once daily at 10:00 AM Tbilisi (06:00 UTC)
+# 4. Companies Weekends: Once daily at 11:00 AM Tbilisi (07:00 UTC, 1-hour staggered)
+
+$rules = @(
+    @{
+        Name = "jobs-tracker-aggregators-weekdays"
+        Cron = "cron(0 6,8,10,12,14,16,18 ? * MON-FRI *)"
+        Input = '{"source":"aggregators"}'
+        StatementId = "EventBridgeInvokeAggregatorsWeekdays"
+        Description = "Monitors jobsge and linkedin every 2 hours on weekdays"
+    },
+    @{
+        Name = "jobs-tracker-companies-weekdays"
+        Cron = "cron(0 7,13 ? * MON-FRI *)"
+        Input = '{"source":"companies"}'
+        StatementId = "EventBridgeInvokeCompaniesWeekdays"
+        Description = "Monitors 33 direct company career portals twice daily on weekdays at 11:00 and 17:00 Tbilisi"
+    },
+    @{
+        Name = "jobs-tracker-aggregators-weekends"
+        Cron = "cron(0 6 ? * SAT-SUN *)"
+        Input = '{"source":"aggregators"}'
+        StatementId = "EventBridgeInvokeAggregatorsWeekends"
+        Description = "Monitors jobsge and linkedin once daily on weekends at 10:00 AM Tbilisi"
+    },
+    @{
+        Name = "jobs-tracker-companies-weekends"
+        Cron = "cron(0 7 ? * SAT-SUN *)"
+        Input = '{"source":"companies"}'
+        StatementId = "EventBridgeInvokeCompaniesWeekends"
+        Description = "Monitors 33 direct company portals once daily on weekends at 11:00 AM Tbilisi"
+    }
+)
+
+foreach ($r in $rules) {
+    $rName = $r.Name
+    $rCron = $r.Cron
+    $rInput = $r.Input
+    $rStmt = $r.StatementId
+
+    Write-Host "Configuring rule '$rName' ($rCron)..."
+    & $AWS_CMD events put-rule --name $rName --schedule-expression "$rCron" --region $REGION
+
+    $targetsFile = [System.IO.Path]::GetTempFileName()
+    $escapedInput = $rInput.Replace('"', '\"')
+    $TARGETS_JSON = @"
 [
   {
     "Id": "1",
     "Arn": "$LAMBDA_ARN",
-    "Input": "{\"source\":\"all\"}"
+    "Input": "$escapedInput"
   }
 ]
 "@
-Set-Content -Path $targetsFile -Value $TARGETS_JSON -Encoding Ascii
-$targetsFileUri = "file://" + $targetsFile.Replace('\', '/')
+    Set-Content -Path $targetsFile -Value $TARGETS_JSON -Encoding Ascii
+    $targetsUri = "file://" + $targetsFile.Replace('\', '/')
 
-# Weekdays: Hourly between 10:00 and 22:00 Tbilisi Time (06:00 - 18:00 UTC)
-& $AWS_CMD events put-rule --name "jobs-tracker-weekdays" --schedule-expression "cron(0 6-18 ? * MON-FRI *)" --region $REGION
-& $AWS_CMD events put-targets --rule "jobs-tracker-weekdays" --targets "$targetsFileUri" --region $REGION
-$out = & $AWS_CMD lambda add-permission --function-name $FUNCTION_NAME --statement-id "EventBridgeInvokeWeekdays" --action "lambda:InvokeFunction" --principal "events.amazonaws.com" --source-arn "arn:aws:events:${REGION}:${ACCOUNT_ID}:rule/jobs-tracker-weekdays" --region $REGION 2>&1
-if ($LASTEXITCODE -ne 0 -and "$out" -match "ResourceConflictException") {
-    # Permission already exists
-} elseif ($LASTEXITCODE -ne 0) {
-    Write-Host "$out"
+    & $AWS_CMD events put-targets --rule $rName --targets "$targetsUri" --region $REGION
+    Remove-Item $targetsFile -ErrorAction SilentlyContinue
+
+    $out = & $AWS_CMD lambda add-permission `
+        --function-name $FUNCTION_NAME `
+        --statement-id $rStmt `
+        --action "lambda:InvokeFunction" `
+        --principal "events.amazonaws.com" `
+        --source-arn "arn:aws:events:${REGION}:${ACCOUNT_ID}:rule/${rName}" `
+        --region $REGION 2>&1
+    if ($LASTEXITCODE -ne 0 -and "$out" -match "ResourceConflictException") {
+        # Permission already exists
+    } elseif ($LASTEXITCODE -ne 0) {
+        Write-Host "$out"
+    }
 }
-
-# Weekends: Once daily at 12:00 Tbilisi Time (08:00 UTC)
-& $AWS_CMD events put-rule --name "jobs-tracker-weekends" --schedule-expression "cron(0 8 ? * SAT-SUN *)" --region $REGION
-& $AWS_CMD events put-targets --rule "jobs-tracker-weekends" --targets "$targetsFileUri" --region $REGION
-$out = & $AWS_CMD lambda add-permission --function-name $FUNCTION_NAME --statement-id "EventBridgeInvokeWeekends" --action "lambda:InvokeFunction" --principal "events.amazonaws.com" --source-arn "arn:aws:events:${REGION}:${ACCOUNT_ID}:rule/jobs-tracker-weekends" --region $REGION 2>&1
-if ($LASTEXITCODE -ne 0 -and "$out" -match "ResourceConflictException") {
-    # Permission already exists
-} elseif ($LASTEXITCODE -ne 0) {
-    Write-Host "$out"
-}
-
-Remove-Item $targetsFile -ErrorAction SilentlyContinue
 
 Write-Host "==========================================" -ForegroundColor Green
 Write-Host "DEPLOYMENT COMPLETED SUCCESSFULLY!" -ForegroundColor Green
 Write-Host "==========================================" -ForegroundColor Green
+

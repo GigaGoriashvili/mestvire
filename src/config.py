@@ -130,6 +130,12 @@ KEYWORDS = [
 SHORT_ACRONYMS = {"bi", "etl", "dbt", "sql", "dwh", "dba"}
 SHORT_ACRONYMS_REGEX = re.compile(r"\b(bi|sql|etl|dbt|dwh|dba)\b", re.IGNORECASE)
 
+# Pattern matching data center / datacenter terms to avoid false positive 'data' keyword matches
+DATA_CENTER_REGEX = re.compile(
+    r"\bdata[\s-]*cent(?:er|re)s?\b|\bdatacent(?:er|re)s?\b|მონაცემთა\s+ცენტრ\w*",
+    re.IGNORECASE,
+)
+
 # Georgian month name to month number mapping
 GEORGIAN_MONTHS = {
     "იანვარი": 1, "იანვარს": 1,

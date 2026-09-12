@@ -52,14 +52,22 @@ def send_telegram_alert(
     clean_summary = format_telegram_summary(summary)
 
     source = job.get("source", "jobsge")
-    source_name = "LinkedIn" if source == "linkedin" else "jobs.ge"
+    if source == "jobsge":
+        link_text = "ვაკანსიის ნახვა jobs.ge-ზე"
+        source_name = "jobs.ge"
+    elif source == "linkedin":
+        link_text = "ვაკანსიის ნახვა LinkedIn-ზე"
+        source_name = "LinkedIn"
+    else:
+        link_text = "ვაკანსიის ნახვა ოფიციალურ საიტზე"
+        source_name = "ოფიციალური საიტი"
 
     message_html = (
         f"🎯 <b>ახალი ვაკანსია:</b> {escaped_title}\n"
         f"🏢 <b>კომპანია:</b> {escaped_company}\n\n"
         f"📋 <b>მოკლე მიმოხილვა:</b>\n"
         f"{clean_summary}\n\n"
-        f'🔗 <a href="{job["link"]}">ვაკანსიის ნახვა {source_name}-ზე</a>'
+        f'🔗 <a href="{job["link"]}">{link_text}</a>'
     )
 
 

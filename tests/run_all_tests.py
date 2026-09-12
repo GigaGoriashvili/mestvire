@@ -20,6 +20,7 @@ TEST_MODULES = [
     "tests.test_lambda_function",
     "tests.test_llm",
     "tests.test_senior_filter",
+    "tests.test_manifest_engine",
 ]
 
 

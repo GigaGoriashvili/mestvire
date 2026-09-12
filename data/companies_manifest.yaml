@@ -1,0 +1,1821 @@
+version: 1
+generated_at: '2026-09-09T10:41:19.009805+00:00'
+metadata:
+  total_companies: 48
+  categories:
+    international: 22
+    local: 25
+    gaming: 1
+  source_of_truth: companies.yaml
+companies:
+- id: epam
+  name: EPAM Systems
+  category: international
+  source_url: https://careers.epam.com
+  strategy_group: INTERNAL_API
+  endpoint: https://careers.epam.com/api/jobs/v2/search/careers-i18n
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: api_parameter
+    parameter: facets
+    value: country=8150000000000001073
+  pagination:
+    type: offset
+    parameter:
+      offset_parameter: from
+      limit_parameter: size
+  mapping:
+    job_id: uid
+    title: name
+    location: country
+    description: text
+    job_url: seo.url
+    apply_url: seo.url
+    department: primary_skill
+    employment_type: vacancy_type
+    posted_at: created_at
+  api:
+    payload: null
+    headers:
+      Accept: application/json, text/plain, */*
+    response_path: data.jobs
+  selectors: null
+  ats:
+    platform: Proprietary / Internal REST API
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Direct HTTP requests to careers.epam.com search REST API return structured vacancy objects.
+- id: exactpro
+  name: Exactpro Systems
+  category: international
+  source_url: https://careers.exactpro.com/locations/tbilisi
+  strategy_group: STATIC_HTML
+  endpoint: https://careers.exactpro.com/locations/tbilisi
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: url_parameter
+    parameter: path
+    value: /locations/tbilisi
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h2, .field--name-title, a
+    location: .field--name-field-vacancy-location
+    job_url: a[href*='/careers/tbilisi/']
+    description: .field--name-body
+    department: .field--name-field-vacancy-department
+    posted_at: null
+  api: null
+  selectors:
+    container: article.node-vacancy
+    title: h2, .field--name-title, a
+    link: a[href*='/careers/tbilisi/']
+    location: .field--name-field-vacancy-location
+    description: .field--name-body
+    job_id: data-history-node-id
+    department: .field--name-field-vacancy-department
+    date: null
+  ats:
+    platform: Drupal CMS
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Highly stable server-rendered HTML extraction.
+- id: jettycloud
+  name: JettyCloud
+  category: international
+  source_url: https://www.jettycloud.com/vacancies
+  strategy_group: STATIC_HTML
+  endpoint: https://www.jettycloud.com/vacancies
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: all
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h3
+    location: span, p
+    job_url: a[href^='/vacancies/']
+    description: p
+    department: span
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href^='/vacancies/']
+    title: h3
+    link: a[href^='/vacancies/']
+    location: span, p
+    description: p
+    job_id: href
+    department: span
+    date: null
+  ats:
+    platform: Next.js pre-rendered HTML
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Direct static HTML cards accessible without JS.
+- id: lineate
+  name: Lineate
+  category: international
+  source_url: https://www.lineate.com/careers
+  strategy_group: ATS_API
+  endpoint: https://boards-api.greenhouse.io/v1/boards/lineate/jobs?content=true
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: job.location.name
+    value: Georgian office
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: id
+    title: title
+    location: location.name
+    description: content
+    job_url: absolute_url
+    apply_url: absolute_url
+    department: departments[0].name
+    employment_type: null
+    posted_at: updated_at
+  api:
+    payload: null
+    headers: {}
+    response_path: jobs
+  selectors: null
+  ats:
+    platform: Greenhouse
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Stable public Greenhouse Board API.
+- id: coherent_solutions
+  name: Coherent Solutions / ISsoft
+  category: international
+  source_url: https://www.coherentsolutions.com/careers
+  strategy_group: ATS_API
+  endpoint: https://boards-api.greenhouse.io/v1/boards/coherentsolutions/jobs?content=true
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: job.offices
+    value: Georgia
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: id
+    title: title
+    location: offices
+    description: content
+    job_url: absolute_url
+    apply_url: absolute_url
+    department: departments[0].name
+    employment_type: null
+    posted_at: updated_at
+  api:
+    payload: null
+    headers: {}
+    response_path: jobs
+  selectors: null
+  ats:
+    platform: Greenhouse
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Stable public Greenhouse Board API with content=true returning offices.
+- id: quantori
+  name: Quantori
+  category: international
+  source_url: https://career.quantori.com/
+  strategy_group: INTERNAL_API
+  endpoint: https://career.quantori.com/ (embedded window.__NEXT_DATA__)
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: vacancy.data.locations
+    value: Tbilisi / Batumi / Georgia
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: id
+    title: data.title[0].text
+    location: data.locations
+    description: null
+    job_url: data.url
+    apply_url: null
+    department: data.department
+    employment_type: null
+    posted_at: null
+  api:
+    payload: null
+    headers: {}
+    response_path: props.pageProps.vacancies
+  selectors: null
+  ats:
+    platform: Prismic CMS / Next.js
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Structured Next.js state accessible via static HTML parsing.
+- id: bitfury
+  name: Bitfury / BFDC Georgia
+  category: international
+  source_url: https://bitfury.com/careers
+  strategy_group: EXCLUDE
+  endpoint: https://bitfury.com/careers
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: none
+    parameter: null
+  mapping: null
+  api: null
+  selectors: null
+  ats: null
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Source URL no longer hosts a career board. Recommended for exclusion.
+- id: flat_rock
+  name: Flat Rock Technology
+  category: international
+  source_url: https://www.flatrocktech.com/careers/
+  strategy_group: INTERNAL_API
+  endpoint: https://admin.flatrocktech.com/wp-admin/admin-ajax.php?action=frt_jobs
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: job.locations
+    value: Tbilisi / Batumi / Georgia
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: job_position_id
+    title: name
+    location: locations
+    description: null
+    job_url: slug
+    apply_url: slug
+    department: department
+    employment_type: employment_type
+    posted_at: created_at
+  api:
+    payload: null
+    headers: {}
+    response_path: $
+  selectors: null
+  ats:
+    platform: WordPress AJAX endpoint
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Direct WordPress admin-ajax JSON endpoint.
+- id: singular_flutter
+  name: Singular (Flutter CEE)
+  category: international
+  source_url: https://careers.flutterinternational.com/
+  strategy_group: STATIC_HTML
+  endpoint: https://careers.flutterinternational.com/jobs/?location=Tbilisi&pagesize=50
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: url_parameter
+    parameter: location
+    value: Tbilisi
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h2.card-title, a
+    location: .job-meta li, .location
+    job_url: a[href*='/jobs/jr']
+    description: .job-description, p
+    department: .department
+    posted_at: null
+  api: null
+  selectors:
+    container: .card-job
+    title: h2.card-title, a
+    link: a[href*='/jobs/jr']
+    location: .job-meta li, .location
+    description: .job-description, p
+    job_id: href
+    department: .department
+    date: null
+  ats:
+    platform: Umbraco Job Board
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Server-rendered HTML contains all Tbilisi positions.
+- id: innowise
+  name: Innowise Group
+  category: international
+  source_url: https://innowise.com/career
+  strategy_group: STATIC_HTML
+  endpoint: https://innowise.com/careers/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: location
+    value: Georgia, All locations
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: name
+    location: location
+    job_url: url
+    description: level
+    department: direction
+    posted_at: null
+  api: null
+  selectors:
+    container: null
+    title: null
+    link: null
+    location: null
+    description: null
+    job_id: null
+    department: null
+    date: null
+  ats:
+    platform: LiteSpeed Cache WordPress Bundle
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Direct lightweight extraction of vacancies_data from LiteSpeed JS bundle.
+- id: softteco
+  name: SoftTeco
+  category: international
+  source_url: https://softteco.com/current-job-openings
+  strategy_group: STATIC_HTML
+  endpoint: https://softteco.com/current-job-openings
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: location text
+    value: Tbilisi, Batumi, Georgia, All locations
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h3
+    location: .vacancy-location, .link-item
+    job_url: a[href*='/vacancy/']
+    description: null
+    department: .department
+    posted_at: null
+  api: null
+  selectors:
+    container: .link-item
+    title: h3
+    link: a[href*='/vacancy/']
+    location: .vacancy-location, .link-item
+    description: null
+    job_id: href
+    department: .department
+    date: null
+  ats:
+    platform: Custom Server-Rendered CMS
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Server-rendered markup with .link-item containers and .vacancy-location.
+- id: itransition
+  name: Itransition
+  category: international
+  source_url: https://www.itransition.com/careers/vacancies
+  strategy_group: INTERNAL_API
+  endpoint: https://www.itransition.com/careers/page-data/vacancies/page-data.json
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: vacancy.location
+    value: Georgia / Tbilisi / Batumi
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: node.id
+    title: node.title
+    location: node.location
+    description: null
+    job_url: node.slug
+    apply_url: null
+    department: node.category
+    employment_type: null
+    posted_at: null
+  api:
+    payload: null
+    headers: {}
+    response_path: result.data.allVacancies.edges
+  selectors: null
+  ats:
+    platform: Gatsby Headless State
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Structured Gatsby page-data endpoint.
+- id: exadel
+  name: Exadel
+  category: international
+  source_url: https://exadel.com/careers
+  strategy_group: ATS_API
+  endpoint: https://boards-api.greenhouse.io/v1/boards/exadelinc/jobs?content=true
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: job.location.name
+    value: Georgia
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: id
+    title: title
+    location: location.name
+    description: content
+    job_url: absolute_url
+    apply_url: absolute_url
+    department: departments[0].name
+    employment_type: null
+    posted_at: updated_at
+  api:
+    payload: null
+    headers: {}
+    response_path: jobs
+  selectors: null
+  ats:
+    platform: Greenhouse
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Direct, stable Greenhouse Board API.
+- id: devexperts
+  name: Devexperts
+  category: international
+  source_url: https://careers.devexperts.com/vacancies/
+  strategy_group: INTERNAL_API
+  endpoint: https://api-careers.in.devexperts.com/v1/vacancies
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: api_parameter
+    parameter: country
+    value: ge
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: id
+    title: title
+    location: location
+    description: description
+    job_url: id
+    apply_url: id
+    department: department
+    employment_type: type
+    posted_at: null
+  api:
+    payload: null
+    headers: {}
+    response_path: $
+  selectors: null
+  ats:
+    platform: Custom REST API
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Highly reliable direct REST API with server-side country filtering.
+- id: customertimes
+  name: Customertimes
+  category: international
+  source_url: https://www.customertimes.com
+  strategy_group: STATIC_HTML
+  endpoint: https://www.customertimes.com/open-positions
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: location text
+    value: Georgia
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: .heading-style-h5
+    location: .career_location
+    job_url: a.absolute_link
+    description: p
+    department: .department
+    posted_at: null
+  api: null
+  selectors:
+    container: div.career_item.w-dyn-item
+    title: .heading-style-h5
+    link: a.absolute_link
+    location: .career_location
+    description: p
+    job_id: href
+    department: .department
+    date: null
+  ats:
+    platform: Webflow CMS
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Webflow CMS open-positions with detail page location inspection.
+- id: cisco
+  name: Cisco
+  category: international
+  source_url: https://jobs.cisco.com
+  strategy_group: EXCLUDE
+  endpoint: https://careers.cisco.com/global/en/search-results
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: api_parameter
+    parameter: location
+    value: Georgia
+  pagination:
+    type: offset
+    parameter:
+      offset_parameter: from
+      page_parameter: s
+  mapping:
+    job_id: jobId
+    title: title
+    location: cityStateCountry
+    description: description
+    job_url: applyUrl
+    apply_url: applyUrl
+    department: category
+    employment_type: type
+    posted_at: postedDate
+  api:
+    payload: null
+    headers: {}
+    response_path: phApp.ddo.eagerLoadRefineSearch.data.jobs
+  selectors: null
+  ats:
+    platform: Phenom People
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: false
+  notes: Phenom People global portal currently yields no relevant local Georgia tech roles. Excluded.
+- id: softswiss
+  name: SOFTSWISS
+  category: international
+  source_url: https://www.softswiss.com/vacancies
+  strategy_group: EXCLUDE
+  endpoint: https://www.softswiss.com/vacancies
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: none
+    parameter: null
+  mapping: null
+  api: null
+  selectors: null
+  ats: null
+  confidence: 0.9
+  validation_status: verified
+  manifest_ready: true
+  notes: Source URL returns 404. Excluded / flagged for human review.
+- id: wolt
+  name: Wolt (DoorDash)
+  category: international
+  source_url: https://careers.wolt.com
+  strategy_group: STATIC_HTML
+  endpoint: https://careers.wolt.com/en/jobs
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: location text
+    value: Tbilisi, Batumi, Georgia
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h3, h4
+    location: .details-list p:last-child, p:last-child
+    job_url: a[href*='/jobs/']
+    description: null
+    department: .details-list p:first-child, p:first-child
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href*='/jobs/']
+    title: h3, h4
+    link: a[href*='/jobs/']
+    location: .details-list p:last-child, p:last-child
+    description: null
+    job_id: href
+    department: .details-list p:first-child, p:first-child
+    date: null
+  ats:
+    platform: SmartRecruiters backend / Next.js SSR
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Full catalog pre-rendered on server; zero JavaScript required.
+- id: glovo
+  name: Glovo (Delivery Hero)
+  category: international
+  source_url: https://jobs.glovoapp.com
+  strategy_group: INTERNAL_API
+  endpoint: https://careers.glovoapp.com/wp-admin/admin-ajax.php
+  method: POST
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: api_payload
+    parameter: countries[]
+    value: Georgia
+  pagination:
+    type: page
+    parameter:
+      page_parameter: page
+  mapping:
+    job_id: href
+    title: .job-card__title, h3
+    location: .job-card__location
+    description: null
+    job_url: a
+    apply_url: a
+    department: .job-card__department
+    employment_type: null
+    posted_at: null
+  api:
+    payload:
+      action: glovo_filter_jobs
+      countries[]: Georgia
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      X-Requested-With: XMLHttpRequest
+    response_path: $ (HTML partial)
+  selectors: null
+  ats:
+    platform: Greenhouse backend via WordPress AJAX
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Stable WordPress admin-ajax POST endpoint with server-side country filtering.
+- id: bolt
+  name: Bolt
+  category: international
+  source_url: https://bolt.eu/en/careers
+  strategy_group: INTERNAL_API
+  endpoint: https://bolt.eu/en/careers/positions/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: locations[].country
+    value: Georgia
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: id
+    title: title
+    location: locations
+    description: null
+    job_url: url
+    apply_url: url
+    department: department
+    employment_type: null
+    posted_at: null
+  api:
+    payload: null
+    headers: {}
+    response_path: self.__next_f.push RSC chunks
+  selectors: null
+  ats:
+    platform: Greenhouse backend / Next.js RSC
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Embedded Next.js RSC state contains clean structured job records.
+- id: amind_argano
+  name: aMind Solutions (Argano)
+  category: international
+  source_url: https://argano.com/careers
+  strategy_group: EXCLUDE
+  endpoint: https://argano.com/careers
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: none
+    parameter: null
+  mapping: null
+  api: null
+  selectors: null
+  ats: null
+  confidence: 0.9
+  validation_status: verified
+  manifest_ready: true
+  notes: Source URL returns 404. Recommended for exclusion.
+- id: elinext
+  name: Elinext
+  category: international
+  source_url: https://www.elinext.com/careers
+  strategy_group: INTERNAL_API
+  endpoint: https://www.elinext.com/wp-admin/admin-ajax.php
+  method: POST
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: true
+  location_filter:
+    type: client_side
+    parameter: location
+    value: Georgia / Tbilisi / Batumi
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: href
+    title: .el-vacancy__title, h4
+    location: .el-vacancy__location
+    description: null
+    job_url: a
+    apply_url: a
+    department: null
+    employment_type: null
+    posted_at: null
+  api:
+    payload:
+      action: filter_jobs
+      nonce: <dynamic_nonce>
+    headers:
+      Content-Type: application/x-www-form-urlencoded; charset=UTF-8
+      X-Requested-With: XMLHttpRequest
+    response_path: data.html
+  selectors: null
+  ats:
+    platform: WordPress AJAX
+  confidence: 0.9
+  validation_status: partially_verified
+  manifest_ready: true
+  notes: Requires dynamic extraction of careersAjax.nonce from careers landing page
+    before POSTing.
+- id: sweeft
+  name: Sweeft Digital / Making Science Sweeft
+  category: local
+  source_url: https://www.makingscience.com/digital-marketing-job-offers/
+  strategy_group: EXCLUDE
+  endpoint: https://www.makingscience.com/digital-marketing-job-offers/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: job title / card text
+    value: Georgia / Sweeft
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: a[href*='sapsf.eu']
+    location: .location
+    job_url: a[href*='sapsf.eu/sfcareer']
+    description: null
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href*='sapsf.eu/sfcareer']
+    title: a[href*='sapsf.eu']
+    link: a[href*='sapsf.eu/sfcareer']
+    location: .location
+    description: null
+    job_id: href
+    department: null
+    date: null
+  ats:
+    platform: SAP SuccessFactors
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: false
+  notes: Redirects to Making Science global SAP SuccessFactors portal. Excluded.
+- id: redberry
+  name: Redberry
+  category: local
+  source_url: https://redberry.international/career/
+  strategy_group: STATIC_HTML
+  endpoint: https://redberry.international/career/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: Georgia / Local (Tbilisi, Batumi)
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h3, h4
+    location: span
+    job_url: a[href*='/career/']
+    description: p
+    department: span
+    posted_at: null
+  api: null
+  selectors:
+    container: "section a[href*='/career/'], main a[href*='/career/']"
+    title: h3, h4
+    link: a[href*='/career/']
+    location: span
+    description: p
+    job_id: href
+    department: span
+    date: null
+  ats:
+    platform: Custom CMS
+  confidence: 0.9
+  validation_status: partially_verified
+  manifest_ready: true
+  notes: Local agency; all roles are Tbilisi-based. Currently in empty state.
+- id: ugt
+  name: UGT (United Georgian Technologies)
+  category: local
+  source_url: https://career.ugt.ge/search/?createNewAlert=false&q=
+  strategy_group: STATIC_HTML
+  endpoint: https://career.ugt.ge/search/?createNewAlert=false&q=
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: offset
+    parameter:
+      offset_parameter: startrow
+      step: 5
+      max_pages: 10
+  mapping:
+    title: a.jobTitle-link
+    location: null
+    job_url: a.jobTitle-link
+    description: null
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: li.job-tile
+    title: a.jobTitle-link
+    link: a.jobTitle-link
+    location: null
+    description: null
+    job_id: href
+    department: null
+    date: null
+  ats:
+    platform: SAP SuccessFactors
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: SuccessFactors server-rendered search results with tile pagination.
+- id: space_international
+  name: Space International (TBC)
+  category: local
+  source_url: https://space-ge.breezy.hr/
+  strategy_group: ATS_API
+  endpoint: https://space-ge.breezy.hr/json
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: all (Georgia company)
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: id
+    title: name
+    location: location.name
+    description: description
+    job_url: url
+    apply_url: url
+    department: department
+    employment_type: type.name
+    posted_at: updated_at
+  api:
+    payload: null
+    headers: {}
+    response_path: $
+  selectors: null
+  ats:
+    platform: Breezy HR
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Standard public Breezy HR JSON endpoint. Currently 0 active postings.
+- id: energize_global
+  name: Energize Global Services / Doocat
+  category: local
+  source_url: https://energizeglobal.com/
+  strategy_group: STATIC_HTML
+  endpoint: https://energizeglobal.com/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: a
+    location: span
+    job_url: a[href*='career']
+    description: null
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href*='career'], a[href*='job']
+    title: a
+    link: a[href*='career']
+    location: span
+    description: null
+    job_id: href
+    department: null
+    date: null
+  ats: null
+  confidence: 0.75
+  validation_status: unresolved
+  manifest_ready: false
+  notes: Source URL is company root homepage. Human review recommended to provide
+    specific careers URL.
+- id: qarva
+  name: Qarva
+  category: local
+  source_url: https://qarva.com/career/
+  strategy_group: STATIC_HTML
+  endpoint: https://qarva.com/career/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: Georgia / Local (Tbilisi, Batumi)
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h3, h4
+    location: p
+    job_url: a
+    description: p
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: .career-content, [class*='career']
+    title: h3, h4
+    link: a
+    location: p
+    description: p
+    job_id: href
+    department: null
+    date: null
+  ats:
+    platform: Custom static CMS
+  confidence: 0.9
+  validation_status: verified
+  manifest_ready: true
+  notes: Local software development company.
+- id: maxinai
+  name: MaxinAI
+  category: local
+  source_url: https://www.maxinai.com/
+  strategy_group: STATIC_HTML
+  endpoint: https://www.maxinai.com/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: a
+    location: span
+    job_url: a[href*='career']
+    description: null
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href*='career'], a[href*='job']
+    title: a
+    link: a[href*='career']
+    location: span
+    description: null
+    job_id: href
+    department: null
+    date: null
+  ats: null
+  confidence: 0.75
+  validation_status: unresolved
+  manifest_ready: false
+  notes: Root domain provided. Human review recommended.
+- id: theneo
+  name: Theneo
+  category: local
+  source_url: https://www.theneo.io/careers
+  strategy_group: STATIC_HTML
+  endpoint: https://www.theneo.io/careers
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: location text
+    value: Remote / Georgia (Tbilisi, Batumi)
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h3.heading-style-h5, h3
+    location: div[fs-cmsfilter-field='location']
+    job_url: null
+    description: .careers_popup-richtext-dark
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: div.careers_item.w-dyn-item
+    title: h3.heading-style-h5, h3
+    link: null
+    location: div[fs-cmsfilter-field='location']
+    description: .careers_popup-richtext-dark
+    job_id: null
+    department: null
+    date: null
+  ats:
+    platform: Webflow CMS
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Webflow CMS items with on-page rich text modal popup descriptions.
+- id: optio_ai
+  name: Optio.AI
+  category: local
+  source_url: https://careers.optio.ai/
+  strategy_group: STATIC_HTML
+  endpoint: https://careers.optio.ai/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: Georgia / Local (Tbilisi, Batumi)
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h3, h4
+    location: .location
+    job_url: a[href^='/jobs/']
+    description: p
+    department: .department
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href^='/jobs/'], .job-card
+    title: h3, h4
+    link: a[href^='/jobs/']
+    location: .location
+    description: p
+    job_id: href
+    department: .department
+    date: null
+  ats:
+    platform: Custom static CMS
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Clean static HTML job cards.
+- id: datamind
+  name: DataMind
+  category: local
+  source_url: https://datamind.ge
+  strategy_group: STATIC_HTML
+  endpoint: https://datamind.ge/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: a
+    location: span
+    job_url: a[href*='career']
+    description: null
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href*='career']
+    title: a
+    link: a[href*='career']
+    location: span
+    description: null
+    job_id: href
+    department: null
+    date: null
+  ats: null
+  confidence: 0.7
+  validation_status: unresolved
+  manifest_ready: false
+  notes: Root domain provided. Human review recommended.
+- id: humanode
+  name: Humanode
+  category: local
+  source_url: https://humanode.io
+  strategy_group: STATIC_HTML
+  endpoint: https://humanode.io/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: a
+    location: span
+    job_url: a[href*='career']
+    description: null
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href*='career']
+    title: a
+    link: a[href*='career']
+    location: span
+    description: null
+    job_id: href
+    department: null
+    date: null
+  ats: null
+  confidence: 0.7
+  validation_status: unresolved
+  manifest_ready: false
+  notes: Root domain provided. Human review recommended.
+- id: leavingstone
+  name: Leavingstone
+  category: local
+  source_url: https://leavingstone.com
+  strategy_group: STATIC_HTML
+  endpoint: https://leavingstone.com/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: a
+    location: span
+    job_url: a[href*='career']
+    description: null
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href*='career'], a[href*='vacancy']
+    title: a
+    link: a[href*='career']
+    location: span
+    description: null
+    job_id: href
+    department: null
+    date: null
+  ats: null
+  confidence: 0.7
+  validation_status: unresolved
+  manifest_ready: false
+  notes: Root domain provided. Human review recommended.
+- id: it_tech
+  name: It Tech LLC
+  category: local
+  source_url: https://itt.ge/carer/
+  strategy_group: STATIC_HTML
+  endpoint: https://itt.ge/carer/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: Georgia / Local (Tbilisi, Batumi)
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h2, h3
+    location: p
+    job_url: a
+    description: p
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: .elementor-widget-container
+    title: h2, h3
+    link: a
+    location: p
+    description: p
+    job_id: href
+    department: null
+    date: null
+  ats:
+    platform: WordPress Elementor
+  confidence: 0.85
+  validation_status: partially_verified
+  manifest_ready: true
+  notes: Elementor-built page. Currently 0 active postings.
+- id: oservice
+  name: OSERVICE
+  category: local
+  source_url: https://oservice.ge
+  strategy_group: STATIC_HTML
+  endpoint: https://oservice.ge/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: a
+    location: span
+    job_url: a[href*='career']
+    description: null
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href*='career']
+    title: a
+    link: a[href*='career']
+    location: span
+    description: null
+    job_id: href
+    department: null
+    date: null
+  ats: null
+  confidence: 0.7
+  validation_status: unresolved
+  manifest_ready: false
+  notes: Root domain provided. Human review recommended.
+- id: gocloud
+  name: GoCloud
+  category: local
+  source_url: https://gocloud.ge
+  strategy_group: STATIC_HTML
+  endpoint: https://gocloud.ge/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: a
+    location: span
+    job_url: a[href*='career']
+    description: null
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href*='career']
+    title: a
+    link: a[href*='career']
+    location: span
+    description: null
+    job_id: href
+    department: null
+    date: null
+  ats: null
+  confidence: 0.7
+  validation_status: unresolved
+  manifest_ready: false
+  notes: Root domain provided. Human review recommended.
+- id: magticom
+  name: Magticom
+  category: local
+  source_url: https://www.magticom.ge/
+  strategy_group: STATIC_HTML
+  endpoint: https://www.magticom.ge/ka/about-company/vacancies
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: Georgia (all)
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: a
+    location: null
+    job_url: a
+    description: null
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: article a.gray, article a[href*='ka/']
+    title: a
+    link: a
+    location: null
+    description: null
+    job_id: href
+    department: null
+    date: null
+  ats:
+    platform: Custom server-rendered CMS
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Georgian vacancies page with direct vacancy links inside article.
+- id: silknet
+  name: Silknet
+  category: local
+  source_url: https://jobs.silknet.com/jobs-war/welcome.do
+  strategy_group: EXCLUDE
+  endpoint: https://jobs.silknet.com/jobs-war/dwr/call/plaincall/VacancyAction.getList.dwr
+  method: POST
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  manifest_ready: false
+  notes: Legacy Java DWR RPC endpoint discontinued (HTTP 500); vacancies are published on jobs.ge.
+- id: tbc_bank
+  name: TBC Bank Group
+  category: local
+  source_url: https://tbcbank.ge/en/careers
+  strategy_group: ATS_API
+  endpoint: https://api.smartrecruiters.com/v1/companies/TBCBANK/postings
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: api_parameter
+    parameter: country
+    value: ge
+  pagination:
+    type: offset
+    parameter:
+      offset_parameter: offset
+      limit_parameter: limit
+  mapping:
+    job_id: id
+    title: name
+    location: location.city
+    description: null
+    job_url: ref
+    apply_url: ref
+    department: department.label
+    employment_type: typeOfEmployment.label
+    posted_at: releasedDate
+  api:
+    payload: null
+    headers: {}
+    response_path: content
+  selectors: null
+  ats:
+    platform: SmartRecruiters
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Public SmartRecruiters ATS API with server-side country filter.
+- id: bank_of_georgia
+  name: Bank of Georgia
+  category: local
+  source_url: https://bankofgeorgia.ge/en/about/career/vacancies
+  strategy_group: INTERNAL_API
+  endpoint: https://bankofgeorgia.ge/api/bog-r/retail/hr-jobs/get-jobs
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: api_parameter
+    parameter: city
+    value: Tbilisi,Batumi
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: id
+    title: title
+    location: location
+    description: description
+    job_url: hostedUrl
+    apply_url: hostedUrl
+    department: department
+    employment_type: null
+    posted_at: createDate
+  api:
+    payload: null
+    headers: {}
+    response_path: data
+  selectors: null
+  ats:
+    platform: Custom REST API
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Highly reliable direct REST API.
+- id: worklink
+  name: Worklink
+  category: local
+  source_url: https://worklink.tech/career/
+  strategy_group: EXCLUDE
+  endpoint: https://worklink.tech/career/
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: Georgia / Local (Tbilisi, Batumi, Remote)
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h4
+    location: h4 + p, .hybrid
+    job_url: a[href*='career']
+    description: p
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: .job-role
+    title: h4
+    link: a[href*='career']
+    location: h4 + p, .hybrid
+    description: p
+    job_id: href
+    department: null
+    date: null
+  ats:
+    platform: Custom static CMS
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: false
+  notes: Messy/unstable HTML structure. Excluded.
+- id: georgian_post
+  name: Georgian Post
+  category: local
+  source_url: https://www.gpost.ge/info/career
+  strategy_group: STATIC_HTML
+  endpoint: https://www.gpost.ge/info/career
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: location text
+    value: თბილისი / ბათუმი
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h1.career-vacancies__item--title, h1, h2
+    location: .career-vacancies__item--cat p span
+    job_url: .career-vacancies__item--foo a
+    description: null
+    department: null
+    posted_at: .career-vacancies__item--foo span
+  api: null
+  selectors:
+    container: ul.career-vacancies__list li.career-vacancies__list--col
+    title: h1.career-vacancies__item--title, h1, h2
+    link: .career-vacancies__item--foo a
+    location: .career-vacancies__item--cat p span
+    description: null
+    job_id: href
+    department: null
+    date: .career-vacancies__item--foo span
+  ats:
+    platform: Custom server-rendered CMS
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Server-rendered HTML list.
+- id: scappy
+  name: Scappy
+  category: local
+  source_url: https://scapp.ge/en/jobs
+  strategy_group: STATIC_HTML
+  endpoint: https://scapp.ge/en/jobs
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: Georgia / Local (Tbilisi, Batumi)
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h3, h4, .title
+    location: .location
+    job_url: a[href^='/jobs/']
+    description: p
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: a[href^='/jobs/'], div[class*='job']
+    title: h3, h4, .title
+    link: a[href^='/jobs/']
+    location: .location
+    description: p
+    job_id: href
+    department: null
+    date: null
+  ats:
+    platform: Custom static CMS
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Static HTML cards.
+- id: credo
+  name: Credo
+  category: local
+  source_url: https://www.app.helio-ai.com/vacancy/
+  strategy_group: ATS_API
+  endpoint: https://api.helio-ai.com/apply/companies/jsc-credo-bank
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: Tbilisi / Georgia regions
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: public_url_token
+    title: job_title_en, job_title_local
+    location: cities
+    description: description
+    job_url: public_url_token
+    apply_url: public_url_token
+    department: department
+    employment_type: null
+    posted_at: end_date
+  api:
+    payload: null
+    headers: {}
+    response_path: vacancies
+  selectors: null
+  ats:
+    platform: Helio AI
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Public Helio AI REST API with public_url_token vacancy links.
+- id: procredit
+  name: Procredit Bank
+  category: local
+  source_url: https://hr.procredit-group.com/ge/recruitment.html?languagecode=en
+  strategy_group: STATIC_HTML
+  endpoint: https://hr.procredit-group.com/ge/recruitment.html?languagecode=en
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: Georgia (all)
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    title: h1, h2
+    location: p
+    job_url: a[href*='apply-now']
+    description: p
+    department: null
+    posted_at: null
+  api: null
+  selectors:
+    container: article, .recruitment-table, a[href*='apply-now']
+    title: h1, h2
+    link: a[href*='apply-now']
+    location: p
+    description: p
+    job_id: href
+    department: null
+    date: null
+  ats:
+    platform: Custom TYPO3 Recruitment Intake
+  confidence: 0.9
+  validation_status: partially_verified
+  manifest_ready: true
+  notes: Recruitment model is centralized onboarding intake rather than discrete requisition
+    cards.
+- id: liberty_bank
+  name: Liberty Bank
+  category: local
+  source_url: https://libertybank.ge
+  strategy_group: INTERNAL_API
+  endpoint: https://libertybank.ge/ka/kariera/mimdinare-vakansiebi
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: client_side
+    parameter: location
+    value: თბილისი და რეგიონები
+  pagination:
+    type: none
+    parameter: null
+  mapping:
+    job_id: id
+    title: title
+    location: location.title
+    job_url: url
+    apply_url: url
+    department: category.title
+    posted_at: endDate
+  api:
+    payload: null
+    headers: {}
+    response_path: window.vacancies
+  selectors: null
+  ats:
+    platform: Custom CMS
+  confidence: 0.95
+  validation_status: verified
+  manifest_ready: true
+  notes: Vacancy data embedded in window.vacancies JavaScript array.
+- id: sambrela
+  name: Sambrela
+  category: gaming
+  source_url: https://sambrela.com
+  strategy_group: EXCLUDE
+  endpoint: https://sambrela.com
+  method: GET
+  requires_js: false
+  requires_browser_session: false
+  requires_ephemeral_token: false
+  location_filter:
+    type: none
+    parameter: null
+    value: null
+  pagination:
+    type: none
+    parameter: null
+  mapping: null
+  api: null
+  selectors: null
+  ats: null
+  confidence: 1.0
+  validation_status: verified
+  manifest_ready: true
+  notes: Demonstrably not a usable job source. Excluded with verified evidence.

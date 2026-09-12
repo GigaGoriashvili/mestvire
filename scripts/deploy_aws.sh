@@ -171,7 +171,7 @@ cat <<EOF > "$INLINE_FILE"
         "dynamodb:PutItem",
         "dynamodb:DescribeTable"
       ],
-      "Resource": "arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/jobs_tracker"
+      "Resource": "arn:aws:dynamodb:${REGION}:${ACCOUNT_ID}:table/jobs_tracker*"
     },
     {
       "Sid": "SSMParameterAccess",
@@ -279,65 +279,62 @@ aws logs put-retention-policy \
 # ==========================================
 echo "5. Configuring EventBridge Schedules..."
 
-TARGETS_FILE=$(mktemp)
-cat <<EOF > "$TARGETS_FILE"
+# Clean up legacy / migrated rules if they exist
+LEGACY_RULES=("jobs-tracker-weekdays" "jobs-tracker-weekends" "jobs-tracker-aggregators-2h" "jobs-tracker-companies-6h")
+for legacy in "${LEGACY_RULES[@]}"; do
+    if aws events describe-rule --name "$legacy" --region "$REGION" >/dev/null 2>&1; then
+        echo "Migrating away from legacy rule '$legacy'..."
+        aws events remove-targets --rule "$legacy" --ids "1" --region "$REGION" >/dev/null 2>&1 || true
+        aws events delete-rule --name "$legacy" --region "$REGION" >/dev/null 2>&1 || true
+    fi
+done
+
+# Define the 4 target schedule rules:
+# 1. Aggregators Weekdays: Every 2h from 10:00 to 22:00 Tbilisi (06:00 - 18:00 UTC)
+# 2. Companies Weekdays: Twice daily at 11:00 and 17:00 Tbilisi (07:00, 13:00 UTC)
+# 3. Aggregators Weekends: Once daily at 10:00 AM Tbilisi (06:00 UTC)
+# 4. Companies Weekends: Once daily at 11:00 AM Tbilisi (07:00 UTC, 1-hour staggered)
+
+declare -a RULES=(
+    "jobs-tracker-aggregators-weekdays|cron(0 6,8,10,12,14,16,18 ? * MON-FRI *)|{\"source\":\"aggregators\"}|EventBridgeInvokeAggregatorsWeekdays"
+    "jobs-tracker-companies-weekdays|cron(0 7,13 ? * MON-FRI *)|{\"source\":\"companies\"}|EventBridgeInvokeCompaniesWeekdays"
+    "jobs-tracker-aggregators-weekends|cron(0 6 ? * SAT-SUN *)|{\"source\":\"aggregators\"}|EventBridgeInvokeAggregatorsWeekends"
+    "jobs-tracker-companies-weekends|cron(0 7 ? * SAT-SUN *)|{\"source\":\"companies\"}|EventBridgeInvokeCompaniesWeekends"
+)
+
+for entry in "${RULES[@]}"; do
+    IFS="|" read -r R_NAME R_CRON R_INPUT R_STMT <<< "$entry"
+
+    echo "Configuring rule '$R_NAME' ($R_CRON)..."
+    aws events put-rule --name "$R_NAME" --schedule-expression "$R_CRON" --region "$REGION"
+
+    TARGETS_FILE=$(mktemp)
+    cat <<EOF > "$TARGETS_FILE"
 [
   {
     "Id": "1",
     "Arn": "$LAMBDA_ARN",
-    "Input": "{\"source\":\"all\"}"
+    "Input": $(echo "$R_INPUT" | sed 's/"/\\"/g' | sed 's/^/"/' | sed 's/$/"/')
   }
 ]
 EOF
+    aws events put-targets --rule "$R_NAME" --targets "file://$TARGETS_FILE" --region "$REGION"
+    rm -f "$TARGETS_FILE"
 
-# A. Weekdays: Hourly between 10:00 and 22:00 Tbilisi Time (06:00 - 18:00 UTC)
-aws events put-rule \
-    --name "jobs-tracker-weekdays" \
-    --schedule-expression "cron(0 6-18 ? * MON-FRI *)" \
-    --region "$REGION"
-
-aws events put-targets \
-    --rule "jobs-tracker-weekdays" \
-    --targets "file://$TARGETS_FILE" \
-    --region "$REGION"
-
-OUT=$(aws lambda add-permission \
-    --function-name "$FUNCTION_NAME" \
-    --statement-id "EventBridgeInvokeWeekdays" \
-    --action "lambda:InvokeFunction" \
-    --principal "events.amazonaws.com" \
-    --source-arn "arn:aws:events:${REGION}:${ACCOUNT_ID}:rule/jobs-tracker-weekdays" \
-    --region "$REGION" 2>&1) || {
-    if ! echo "$OUT" | grep -q "ResourceConflictException"; then
-        echo "$OUT"
-    fi
-}
-
-# B. Weekends: Once daily at 12:00 Tbilisi Time (08:00 UTC)
-aws events put-rule \
-    --name "jobs-tracker-weekends" \
-    --schedule-expression "cron(0 8 ? * SAT-SUN *)" \
-    --region "$REGION"
-
-aws events put-targets \
-    --rule "jobs-tracker-weekends" \
-    --targets "file://$TARGETS_FILE" \
-    --region "$REGION"
-
-OUT=$(aws lambda add-permission \
-    --function-name "$FUNCTION_NAME" \
-    --statement-id "EventBridgeInvokeWeekends" \
-    --action "lambda:InvokeFunction" \
-    --principal "events.amazonaws.com" \
-    --source-arn "arn:aws:events:${REGION}:${ACCOUNT_ID}:rule/jobs-tracker-weekends" \
-    --region "$REGION" 2>&1) || {
-    if ! echo "$OUT" | grep -q "ResourceConflictException"; then
-        echo "$OUT"
-    fi
-}
-
-rm -f "$TARGETS_FILE"
+    OUT=$(aws lambda add-permission \
+        --function-name "$FUNCTION_NAME" \
+        --statement-id "$R_STMT" \
+        --action "lambda:InvokeFunction" \
+        --principal "events.amazonaws.com" \
+        --source-arn "arn:aws:events:${REGION}:${ACCOUNT_ID}:rule/${R_NAME}" \
+        --region "$REGION" 2>&1) || {
+        if ! echo "$OUT" | grep -q "ResourceConflictException"; then
+            echo "$OUT"
+        fi
+    }
+done
 
 echo "=========================================="
 echo "DEPLOYMENT COMPLETED SUCCESSFULLY!"
 echo "=========================================="
+

@@ -10,10 +10,12 @@ The entire setup operates well within the **AWS Free Tier** ($0/month ongoing co
 
 ```mermaid
 flowchart LR
-    EventBridge["Amazon EventBridge<br/>(Cron Scheduler)"] -->|"Invokes with {'source': 'all'}"| Lambda["AWS Lambda Function<br/>(jobs-tracker-scraper)"]
+    EB1["EventBridge: Aggregators<br/>(Weekdays: 2h | Weekends: 10:00)"] -->|"Invokes with {'source': 'aggregators'}"| Lambda["AWS Lambda Function<br/>(jobs-tracker-scraper)"]
+    EB2["EventBridge: Companies<br/>(Weekdays: 11:00, 17:00 | Weekends: 11:00)"] -->|"Invokes with {'source': 'companies'}"| Lambda
     Lambda -->|Read Secrets| SSM["SSM Parameter Store<br/>(/jobs/*)"]
-    Lambda -->|"Read & Write State"| DynamoDB[("Amazon DynamoDB<br/>(jobs_tracker + 30-day TTL)")]
-    Lambda -->|Scrape Web| Sources["Job Sources<br/>(jobs.ge, LinkedIn)"]
+    Lambda -->|"Read & Write State"| DynamoDB[("Amazon DynamoDB<br/>(jobs_tracker* + 30-day TTL)")]
+    Lambda -->|Scrape Aggregators| Aggregators["Aggregator Sources<br/>(jobs.ge, LinkedIn)"]
+    Lambda -->|Concurrent Scrape| Companies["Direct Company Portals<br/>(33 Active ATS/HTML Endpoints)"]
     Lambda -->|"Filter & Evaluate"| Gemini["Google Gemini API<br/>(gemini-3.8-flash)"]
     Lambda -->|Alert on Match| Telegram["Telegram Bot API<br/>(Channel / Chat)"]
 ```
@@ -26,7 +28,7 @@ flowchart LR
 | **Secrets Management** | AWS Systems Manager (SSM) Parameter Store | Securely stores API keys and bot tokens | Parameters under `/jobs/` (`SecureString` and `String`) |
 | **Execution Engine** | AWS Lambda | Executes scrapers, LLM evaluation, and notifications | Python 3.12, `x86_64`, 512 MB memory, 300s timeout |
 | **Access Control** | AWS IAM | Grants least-privilege permissions | Custom role `JobsScraperLambdaRole` |
-| **Scheduler** | Amazon EventBridge | Triggers Lambda periodically | Weekdays: hourly (10:00–22:00 Tbilisi)<br/>Weekends: daily (12:00 Tbilisi) |
+| **Scheduler** | Amazon EventBridge | Triggers Lambda periodically on weekday and weekend schedules | **Aggregators Weekdays**: `cron(0 6,8,10,12,14,16,18 ? * MON-FRI *)` (every 2h from 10:00 to 22:00 Tbilisi)<br/>**Companies Weekdays**: `cron(0 7,13 ? * MON-FRI *)` (twice daily at 11:00 and 17:00 Tbilisi)<br/>**Aggregators Weekends**: `cron(0 6 ? * SAT-SUN *)` (once daily at 10:00 AM Tbilisi)<br/>**Companies Weekends**: `cron(0 7 ? * SAT-SUN *)` (once daily at 11:00 AM Tbilisi) |
 | **Observability** | Amazon CloudWatch Logs | Stores execution logs and error traces | Log group `/aws/lambda/jobs-tracker-scraper`, 14-day retention |
 
 ---
@@ -66,7 +68,7 @@ Run the automated packaging tool from the project root:
 ```bash
 python scripts/package_lambda.py
 ```
-This builds `deployment_package.zip` containing all production dependencies, source modules (`src/`), and `lambda_function.py`.
+This builds `deployment_package.zip` containing all production dependencies, source modules (`src/`), entrypoint `lambda_function.py`, and automatically packages `data/companies_manifest.yaml` into the `data/` directory of the zip bundle.
 
 ### Step 2: Run the Deployment Script
 
@@ -94,10 +96,10 @@ chmod +x scripts/deploy_aws.sh
 The script automatically:
 - Creates the DynamoDB table `jobs_tracker` and enables 30-day TTL on `expire_at`.
 - Loads secrets from `.env` and stores them in SSM Parameter Store (`/jobs/*`).
-- Provisions the IAM role `JobsScraperLambdaRole` with least-privilege access policies.
+- Provisions the IAM role `JobsScraperLambdaRole` with least-privilege access policies (allowing table wildcarding `jobs_tracker*`).
 - Deploys `deployment_package.zip` to AWS Lambda with optimal runtime settings.
 - Configures CloudWatch log retention to 14 days.
-- Sets up EventBridge cron rules and attaches invoke permissions.
+- Sets up dual EventBridge rate rules (`jobs-tracker-aggregators-2h` and `jobs-tracker-companies-6h`) and attaches invoke permissions.
 
 ---
 
@@ -149,7 +151,7 @@ If you prefer to provision AWS resources manually via the AWS Management Console
         "dynamodb:PutItem",
         "dynamodb:DescribeTable"
       ],
-      "Resource": "arn:aws:dynamodb:*:*:table/jobs_tracker"
+      "Resource": "arn:aws:dynamodb:*:*:table/jobs_tracker*"
     },
     {
       "Sid": "SSMParameterAccess",
@@ -194,39 +196,80 @@ If you prefer to provision AWS resources manually via the AWS Management Console
    - Ensure **Runtime settings** handler is set to `lambda_function.lambda_handler`.
 
 ### 5. Amazon EventBridge Scheduler
-The scraper runs on two schedules:
+The scraper runs on a targeted 4-rule architecture to balance fresh vacancy discovery on fast-moving aggregators with efficient company career portal scraping across weekdays and weekends:
 
-#### Schedule A: Weekdays (Hourly between 10:00 and 22:00 Tbilisi Time / 06:00 - 18:00 UTC)
+#### Rule 1: Aggregators Weekdays (`jobs-tracker-aggregators-weekdays`)
+Monitors `jobs.ge` and `LinkedIn` every 2 hours between 10:00 and 22:00 Tbilisi Time (Monday to Friday):
 1. Go to **Amazon EventBridge** > **Rules** > **Create rule**.
-2. **Name**: `jobs-tracker-weekdays`
+2. **Name**: `jobs-tracker-aggregators-weekdays`
 3. **Rule type**: Schedule
-4. **Schedule pattern**: Cron expression: `0 6-18 ? * MON-FRI *`
+4. **Schedule pattern**: Cron expression: `0 6,8,10,12,14,16,18 ? * MON-FRI *`
 5. **Target**:
    - Target type: **AWS service**
    - Service: **Lambda function**
    - Function: `jobs-tracker-scraper`
    - Expand **Additional settings** > **Configure target input** > Select **Constant (JSON text)**:
      ```json
-     {"source": "all"}
+     {"source": "aggregators"}
      ```
-     *(Important: Always supply `{"source": "all"}` so the function targets all registered sources rather than defaulting to EventBridge system events).*
 
-#### Schedule B: Weekends (Once daily at 12:00 Tbilisi Time / 08:00 UTC)
-1. **Name**: `jobs-tracker-weekends`
-2. **Schedule pattern**: Cron expression: `0 8 ? * SAT-SUN *`
-3. **Target**: Same as Schedule A with input `{"source": "all"}`.
+#### Rule 2: Companies Weekdays (`jobs-tracker-companies-weekdays`)
+Monitors all 33 direct company career portals twice daily at 11:00 AM and 5:00 PM (17:00) Tbilisi Time / 07:00, 13:00 UTC (Monday to Friday):
+1. **Name**: `jobs-tracker-companies-weekdays`
+2. **Rule type**: Schedule
+3. **Schedule pattern**: Cron expression: `0 7,13 ? * MON-FRI *`
+4. **Target**:
+   - Function: `jobs-tracker-scraper`
+   - Target input:
+     ```json
+     {"source": "companies"}
+     ```
+
+#### Rule 3: Aggregators Weekends (`jobs-tracker-aggregators-weekends`)
+Monitors `jobs.ge` and `LinkedIn` once daily at 10:00 AM Tbilisi Time (Saturday and Sunday):
+1. **Name**: `jobs-tracker-aggregators-weekends`
+2. **Rule type**: Schedule
+3. **Schedule pattern**: Cron expression: `0 6 ? * SAT-SUN *`
+4. **Target**:
+   - Function: `jobs-tracker-scraper`
+   - Target input:
+     ```json
+     {"source": "aggregators"}
+     ```
+
+#### Rule 4: Companies Weekends (`jobs-tracker-companies-weekends`)
+Monitors all 33 direct company career portals once daily at 11:00 AM Tbilisi Time / 07:00 UTC (Saturday and Sunday, providing 1-hour staggered separation from aggregators):
+1. **Name**: `jobs-tracker-companies-weekends`
+2. **Rule type**: Schedule
+3. **Schedule pattern**: Cron expression: `0 7 ? * SAT-SUN *`
+4. **Target**:
+   - Function: `jobs-tracker-scraper`
+   - Target input:
+     ```json
+     {"source": "companies"}
+     ```
 
 ---
 
 ## Verification & Testing
 
 ### 1. Test Invocation via AWS CLI
-You can invoke the deployed Lambda function in test mode (scrapes listings, evaluates the first vacancy, but skips database writes):
+You can invoke the deployed Lambda function in test mode (scrapes listings, evaluates the first matching vacancy, sends a Telegram notification preview, but skips database writes):
 
+#### Test Aggregators (jobs.ge & LinkedIn)
 ```bash
 aws lambda invoke \
     --function-name jobs-tracker-scraper \
-    --payload '{"test": true, "source": "all"}' \
+    --payload '{"test": true, "source": "aggregators"}' \
+    --cli-binary-format raw-in-base64-out \
+    --region eu-central-1 response.json
+```
+
+#### Test Company Career Boards (Direct Portals)
+```bash
+aws lambda invoke \
+    --function-name jobs-tracker-scraper \
+    --payload '{"test": true, "source": "companies"}' \
     --cli-binary-format raw-in-base64-out \
     --region eu-central-1 response.json
 ```
@@ -240,12 +283,12 @@ Get-Content response.json
 cat response.json
 ```
 
-Expected output:
+Expected output (illustrating company stats):
 ```json
 {
   "statusCode": 200,
   "headers": { "Content-Type": "application/json" },
-  "body": "{\"status\": \"success\", \"requestId\": \"...\", \"source\": \"all\", \"is_test\": true, \"stats\": {\"jobsge\": {...}, \"linkedin\": {...}}}"
+  "body": "{\"status\": \"success\", \"requestId\": \"...\", \"source\": \"companies\", \"is_test\": true, \"stats\": {\"epam\": {\"total_scraped\": 15, \"new_matched\": 1, \"processed\": 1, \"senior_skipped\": 0, \"errors\": 0}, \"tbc_bank\": {\"total_scraped\": 8, \"new_matched\": 1, \"processed\": 1, \"senior_skipped\": 0, \"errors\": 0}, \"bank_of_georgia\": {\"total_scraped\": 12, \"new_matched\": 0, \"processed\": 0, \"senior_skipped\": 1, \"errors\": 0}}}"
 }
 ```
 

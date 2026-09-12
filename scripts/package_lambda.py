@@ -22,6 +22,9 @@ LAMBDA_ENTRYPOINT = PROJECT_ROOT / "lambda_function.py"
 SRC_DIR = PROJECT_ROOT / "src"
 
 
+DATA_DIR = PROJECT_ROOT / "data"
+
+
 def clean() -> None:
     """Clean previous build artifacts."""
     print("Cleaning previous build artifacts...")
@@ -61,8 +64,8 @@ def install_dependencies() -> None:
 
 
 def copy_source_code() -> None:
-    """Copy lambda_function.py and src/ package into build directory."""
-    print("Copying application source code...")
+    """Copy lambda_function.py, src/ package, and data/ directory into build directory."""
+    print("Copying application source code and data manifest...")
     # Copy lambda_function.py
     shutil.copy2(LAMBDA_ENTRYPOINT, BUILD_DIR / "lambda_function.py")
 
@@ -73,7 +76,15 @@ def copy_source_code() -> None:
         dest_src,
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", "*.pyd"),
     )
-    print("Source code copied.")
+
+    # Copy data/ directory containing companies_manifest.yaml
+    dest_data = BUILD_DIR / "data"
+    shutil.copytree(
+        DATA_DIR,
+        dest_data,
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", "*.pyd"),
+    )
+    print("Source code and data directory copied.")
 
 
 def remove_bloat() -> None:

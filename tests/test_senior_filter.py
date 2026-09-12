@@ -178,6 +178,7 @@ def test_run_monitor_skipping_in_listing():
          patch("src.pipeline.init_db", return_value=None), \
          patch("src.pipeline.genai.Client"), \
          patch("src.pipeline.scrape_jobs_listing", return_value=mock_jobs), \
+         patch("src.pipeline.is_recent_job", return_value=True), \
          patch("src.pipeline.process_single_job") as mock_process, \
          patch("src.pipeline.mark_job_seen", side_effect=mock_store.mark_seen), \
          patch("src.pipeline.is_job_seen", side_effect=mock_store.is_seen):
@@ -256,6 +257,21 @@ def test_linkedin_keywords_matching():
     assert matches_keywords("QA Engineer") is False
     assert matches_keywords("DevOps Engineer") is False
     assert matches_keywords("Civil Engineer") is False
+
+    # Data Center false positive prevention (must not match solely due to 'data' in 'data center')
+    assert matches_keywords("Cloud Infrastructure Engineer (Data Center)") is False
+    assert matches_keywords("Mulsoft Engineer (Data Center)") is False
+    assert matches_keywords("RPA Engineer (Data Center)") is False
+    assert matches_keywords("Data Center Facilities Technician") is False
+    assert matches_keywords("Data Center Architect") is False
+    assert matches_keywords("ინფრასტრუქტურის ინჟინერი (მონაცემთა ცენტრი)") is False
+
+    # Valid data engineering / analytics roles involving data centers or other data keywords
+    assert matches_keywords("DevOps Data Engineer (Digital Marketing sphere)") is True
+    assert matches_keywords("DevOps Data Engineer (Data Center)") is True
+    assert matches_keywords("Data Center BI Analyst") is True
+    assert matches_keywords("Data Center SQL Specialist") is True
+    assert matches_keywords("მონაცემთა ინჟინერი (მონაცემთა ცენტრი)") is True
 
     print("PASS: test_linkedin_keywords_matching")
 

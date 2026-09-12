@@ -19,9 +19,9 @@ def lambda_handler(event: Optional[Dict[str, Any]], context: Any) -> Dict[str, A
     AWS Lambda handler function.
 
     Expected event parameters (all optional):
-    - source: 'all' (default), 'jobsge', 'linkedin', or any registered scraper.
+    - source: 'all' (default), 'aggregators', 'companies', 'jobsge', 'linkedin', or any company ID.
     - test: bool, if True runs in test mode (processes first vacancy, does not commit to DB).
-    - test_source: 'jobsge' (default), 'linkedin', or 'all' (used when test=True).
+    - test_source: 'jobsge' (default), 'linkedin', 'companies', 'all', or any company ID (used when test=True).
     - filter_senior: bool or None, controls senior-level filtering (defaults to config).
 
     Returns:
